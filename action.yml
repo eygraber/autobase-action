@@ -1,5 +1,9 @@
-name: 'Autobase'
+name: 'autobase-action'
 description: 'Automatically rebases a PR with a specific label onto the default branch.'
+
+branding:
+  icon: 'git-pull-request'
+  color: 'blue'
 
 inputs:
   github-token:
