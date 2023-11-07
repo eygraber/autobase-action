@@ -49,7 +49,7 @@ Note: It is crucial to keep your PAT secure. Use it only when necessary and do n
 ## Example usage
 
 ```yml
-name: Auto Rebase
+name: Autobase
 
 on:
   pull_request:
@@ -72,7 +72,7 @@ jobs:
       with:
         token: ${{ secrets.AUTOBASE_TOKEN }}
 
-    - name: Auto Rebase
+    - name: Autobase
       uses: eygraber/autobase-action@v1
       with:
         github-token: ${{ secrets.AUTOBASE_TOKEN }}
