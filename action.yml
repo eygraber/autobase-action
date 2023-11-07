@@ -1,24 +1,22 @@
-name: 'The name of your action here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'Autobase'
+description: 'Automatically rebases a PR with a specific label onto the default branch.'
 
-# Add your action's branding here. This will appear on the GitHub Marketplace.
-branding:
-  icon: 'heart'
-  color: 'red'
-
-# Define your inputs here.
 inputs:
-  milliseconds:
-    description: 'Your input description here'
+  github-token:
+    description: 'GitHub token for authentication'
     required: true
-    default: '1000'
-
-# Define your outputs here.
-outputs:
-  time:
-    description: 'Your output description here'
+  label:
+    description: 'Label to filter pull requests'
+    required: false
+    default: 'autobase'
+  required-approvals:
+    description: 'The number of required approvals before a PR can be rebased'
+    required: false
+    default: '0'
+  base-branch:
+    description: 'The base branch to use'
+    required: false
 
 runs:
-  using: node20
-  main: dist/index.js
+  using: 'node20'
+  main: 'dist/index.js'
