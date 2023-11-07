@@ -124,6 +124,12 @@ async function rebaseNextPullRequest(
     direction: 'asc'
   })
 
+  core.info(
+    `Evaluating the following PRs: ${pullRequests
+      .map(pr => `#${pr.number}`)
+      .join(', ')}`
+  )
+
   for (const pr of pullRequests) {
     if (!pr.labels.map(prLabel => prLabel.name).includes(label)) {
       core.info(`PR #${pr.number} is not labeled with '${label}'.`)

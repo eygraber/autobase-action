@@ -210,6 +210,53 @@ describe('Auto Rebase Action', () => {
     })
   })
 
+  it('Prints the PR that will be evaluated', async () => {
+    mockListPulls.mockResolvedValueOnce({
+      data: [
+        {
+          number: 2,
+          labels: [{ name: 'autobase' }],
+          draft: false,
+          mergeable_state: 'behind',
+          head: { sha: 'abc456' }
+        }
+      ]
+    })
+
+    await run()
+
+    expect(mockListPulls).toHaveBeenCalledTimes(1)
+    expect(core.info).toHaveBeenCalledWith('Evaluating the following PRs: #2')
+  })
+
+  it('Prints the PRs that will be evaluated', async () => {
+    mockListPulls.mockResolvedValueOnce({
+      data: [
+        {
+          number: 2,
+          labels: [{ name: 'autobase' }],
+          draft: false,
+          mergeable_state: 'behind',
+          head: { sha: 'abc456' }
+        },
+        {
+          number: 3,
+          labels: [{ name: 'autobase' }],
+          draft: false,
+          mergeable_state: 'behind',
+          head: { sha: 'def456' }
+        }
+      ]
+    })
+
+    await run()
+
+    expect(mockListPulls).toHaveBeenCalledTimes(1)
+    expect(core.info).toHaveBeenCalledWith(
+      'Evaluating the following PRs: #2, #3'
+    )
+  })
+
   it('Rebases the next PR correctly when a check suite does not succeed for a PR with the specified label', async () => {
     github.context.eventName = 'check_suite'
 
