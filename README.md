@@ -1,4 +1,6 @@
-# Create a GitHub Action Using TypeScript
+# Autobase Action
+
+This GitHub Action automatically rebases pull requests in your repository when certain conditions are met.
 
 [![GitHub Super-Linter](https://github.com/actions/typescript-action/actions/workflows/linter.yml/badge.svg)](https://github.com/super-linter/super-linter)
 ![CI](https://github.com/actions/typescript-action/actions/workflows/ci.yml/badge.svg)
@@ -6,219 +8,65 @@
 [![CodeQL](https://github.com/actions/typescript-action/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/actions/typescript-action/actions/workflows/codeql-analysis.yml)
 [![Coverage](./badges/coverage.svg)](./badges/coverage.svg)
 
-Use this template to bootstrap the creation of a TypeScript action. :rocket:
+## What this action does
 
-This template includes compilation support, tests, a validation workflow,
-publishing, and versioning guidance.
+When a pull request is merged, this action checks for other open pull requests that are labeled with a specific tag (by default `autobase`). If the merged pull request's base is the repository's default branch and other conditions (like required approvals) are met, the action will attempt to rebase the next available pull request starting with the oldest of the pull requests. If that fails it moves on to the next one, until one succeeds or there are no more pull requests to try to rebase.
 
-If you are new, there's also a simpler introduction in the
-[Hello world JavaScript action repository](https://github.com/actions/hello-world-javascript-action).
+## Inputs
 
-## Create Your Own Action
+| Input                  | Description                                                 | Required | Default |
+|------------------------|-------------------------------------------------------------|:--------:|---------|
+| `github-token`         | The GitHub token used to authenticate requests.             |   Yes    |   N/A   |
+| `label`                | The label which the pull request must have to be rebased.   |   No     | autobase|
+| `required-approvals`   | The number of approvals required before rebasing.           |   No     |   0     |
+| `base-branch`          | The base branch to check for before rebasing.               |   No     | default branch of the repository |
 
-To create your own action, you can use this repository as a template! Just
-follow the below instructions:
+## Outputs
 
-1. Click the **Use this template** button at the top of the repository
-1. Select **Create a new repository**
-1. Select an owner and name for your new repository
-1. Click **Create repository**
-1. Clone your new repository
+_None. This action does not set any outputs._
 
-## Initial Setup
+## Token Permissions
 
-After you've cloned the repository to your local machine or codespace, you'll
-need to perform some initial setup steps before you can develop your action.
+To use this action, you must provide a `github-token` with the appropriate permissions. GitHub does not trigger new workflow runs on events caused by the default `GITHUB_TOKEN` for actions ([see here for more info](https://docs.github.com/en/actions/using-workflows/triggering-a-workflow#triggering-a-workflow-from-a-workflow)). Therefore, you need to create a Personal Access Token (PAT) with the required scopes and use it within your workflow to circumvent this limitation.
 
-> [!NOTE]
->
-> You'll need to have a reasonably modern version of
-> [Node.js](https://nodejs.org) handy (20.x or later should work!). If you are
-> using a version manager like [`nodenv`](https://github.com/nodenv/nodenv) or
-> [`nvm`](https://github.com/nvm-sh/nvm), this template has a `.node-version`
-> file at the root of the repository that will be used to automatically switch
-> to the correct version when you `cd` into the repository. Additionally, this
-> `.node-version` file is used by GitHub Actions in any `actions/setup-node`
-> actions.
+### Creating a Personal Access Token (PAT)
 
-1. :hammer_and_wrench: Install the dependencies
+1. Go to your GitHub settings.
+2. Under Developer settings, choose Personal Access Tokens.
+3. Generate a new token with at least the `repo` scope for public repositories, or the `repo` and `workflow` scopes for private repositories.
+4. Save the generated token, as you will not be able to view it again.
 
-   ```bash
-   npm install
-   ```
+### Using the Personal Access Token in your workflow
 
-1. :building_construction: Package the TypeScript for distribution
+After creating your PAT, you should store it as a secret in your repository:
 
-   ```bash
-   npm run bundle
-   ```
+1. Go to your repository's Settings tab.
+2. Click on Secrets in the left sidebar.
+3. Add a new secret with the name `AUTOBASE_TOKEN` and paste your PAT as the value.
 
-1. :white_check_mark: Run the tests
+Note: It is crucial to keep your PAT secure. Use it only when necessary and do not share it publicly.
 
-   ```bash
-   $ npm test
+## Example usage
 
-   PASS  ./index.test.js
-     ✓ throws invalid number (3ms)
-     ✓ wait 500 ms (504ms)
-     ✓ test runs (95ms)
+```yml
+name: Auto Rebase
 
-   ...
-   ```
+on:
+  pull_request:
+    types: [closed]
 
-## Update the Action Metadata
+jobs:
+  rebase:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == true
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.AUTOBASE_TOKEN }}
 
-The [`action.yml`](action.yml) file defines metadata about your action, such as
-input(s) and output(s). For details about this file, see
-[Metadata syntax for GitHub Actions](https://docs.github.com/en/actions/creating-actions/metadata-syntax-for-github-actions).
-
-When you copy this repository, update `action.yml` with the name, description,
-inputs, and outputs for your action.
-
-## Update the Action Code
-
-The [`src/`](./src/) directory is the heart of your action! This contains the
-source code that will be run when your action is invoked. You can replace the
-contents of this directory with your own code.
-
-There are a few things to keep in mind when writing your action code:
-
-- Most GitHub Actions toolkit and CI/CD operations are processed asynchronously.
-  In `main.ts`, you will see that the action is run in an `async` function.
-
-  ```javascript
-  import * as core from '@actions/core'
-  //...
-
-  async function run() {
-    try {
-      //...
-    } catch (error) {
-      core.setFailed(error.message)
-    }
-  }
-  ```
-
-  For more information about the GitHub Actions toolkit, see the
-  [documentation](https://github.com/actions/toolkit/blob/master/README.md).
-
-So, what are you waiting for? Go ahead and start customizing your action!
-
-1. Create a new branch
-
-   ```bash
-   git checkout -b releases/v1
-   ```
-
-1. Replace the contents of `src/` with your action code
-1. Add tests to `__tests__/` for your source code
-1. Format, test, and build the action
-
-   ```bash
-   npm run all
-   ```
-
-   > [!WARNING]
-   >
-   > This step is important! It will run [`ncc`](https://github.com/vercel/ncc)
-   > to build the final JavaScript action code with all dependencies included.
-   > If you do not run this step, your action will not work correctly when it is
-   > used in a workflow. This step also includes the `--license` option for
-   > `ncc`, which will create a license file for all of the production node
-   > modules used in your project.
-
-1. Commit your changes
-
-   ```bash
-   git add .
-   git commit -m "My first action is ready!"
-   ```
-
-1. Push them to your repository
-
-   ```bash
-   git push -u origin releases/v1
-   ```
-
-1. Create a pull request and get feedback on your action
-1. Merge the pull request into the `main` branch
-
-Your action is now published! :rocket:
-
-For information about versioning your action, see
-[Versioning](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-in the GitHub Actions toolkit.
-
-## Validate the Action
-
-You can now validate the action by referencing it in a workflow file. For
-example, [`ci.yml`](./.github/workflows/ci.yml) demonstrates how to reference an
-action in the same repository.
-
-```yaml
-steps:
-  - name: Checkout
-    id: checkout
-    uses: actions/checkout@v4
-
-  - name: Test Local Action
-    id: test-action
-    uses: ./
-    with:
-      milliseconds: 1000
-
-  - name: Print Output
-    id: output
-    run: echo "${{ steps.test-action.outputs.time }}"
+    - name: Auto Rebase
+      uses: eygraber/autobase@v1
+      with:
+        github-token: ${{ secrets.AUTOBASE_TOKEN }}
 ```
-
-For example workflow runs, check out the
-[Actions tab](https://github.com/actions/typescript-action/actions)! :rocket:
-
-## Usage
-
-After testing, you can create version tag(s) that developers can use to
-reference different stable versions of your action. For more information, see
-[Versioning](https://github.com/actions/toolkit/blob/master/docs/action-versioning.md)
-in the GitHub Actions toolkit.
-
-To include the action in a workflow in another repository, you can use the
-`uses` syntax with the `@` symbol to reference a specific branch, tag, or commit
-hash.
-
-```yaml
-steps:
-  - name: Checkout
-    id: checkout
-    uses: actions/checkout@v4
-
-  - name: Test Local Action
-    id: test-action
-    uses: actions/typescript-action@v1 # Commit with the `v1` tag
-    with:
-      milliseconds: 1000
-
-  - name: Print Output
-    id: output
-    run: echo "${{ steps.test-action.outputs.time }}"
-```
-
-## Publishing a new release
-
-This project includes a helper script designed to streamline the process of
-tagging and pushing new releases for GitHub Actions.
-
-GitHub Actions allows users to select a specific version of the action to use,
-based on release tags. Our script simplifies this process by performing the
-following steps:
-
-1. **Retrieving the latest release tag:** The script starts by fetching the most
-   recent release tag by looking at the local data available in your repository.
-1. **Prompting for a new release tag:** The user is then prompted to enter a new
-   release tag. To assist with this, the script displays the latest release tag
-   and provides a regular expression to validate the format of the new tag.
-1. **Tagging the new release:** Once a valid new tag is entered, the script tags
-   the new release.
-1. **Pushing the new tag to the remote:** Finally, the script pushes the new tag
-   to the remote repository. From here, you will need to create a new release in
-   GitHub and users can easily reference the new tag in their workflows.
