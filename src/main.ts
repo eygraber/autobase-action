@@ -194,5 +194,3 @@ async function rebaseNextPullRequest(
     }
   }
 }
-
-run()
