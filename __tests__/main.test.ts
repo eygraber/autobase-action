@@ -551,7 +551,7 @@ describe('Auto Rebase Action', () => {
       expected_head_sha: 'stu901',
       update_method: 'rebase'
     })
-    expect(core.setFailed).toHaveBeenCalledWith(
+    expect(core.error).toHaveBeenCalledWith(
       'Failed to rebase PR #7: Error: Rebase failed'
     )
   })

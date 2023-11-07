@@ -189,7 +189,7 @@ async function rebaseNextPullRequest(
       core.info(`Rebased PR #${pr.number}: ${rebaseResult.url}`)
       return
     } catch (error) {
-      core.setFailed(`Failed to rebase PR #${pr.number}: ${error}`)
+      core.error(`Failed to rebase PR #${pr.number}: ${error}`)
       continue
     }
   }
