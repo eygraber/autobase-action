@@ -10,7 +10,7 @@ This GitHub Action automatically rebases pull requests in your repository when c
 
 ## What this action does
 
-When a pull request is merged, this action checks for other open pull requests that are labeled with a specific tag (by default `autobase`). If the merged pull request's base is the repository's default branch and other conditions (like required approvals) are met, the action will attempt to rebase the next available pull request starting with the oldest of the pull requests. If that fails it moves on to the next one, until one succeeds or there are no more pull requests to try to rebase.
+When a pull request is merged or a check_suite fails, this action checks for other open pull requests that are labeled with a specific tag (by default `autobase`). If the merged / failed pull request's base is the repository's default branch and other conditions (like required approvals) are met, the action will attempt to rebase the next available pull request starting with the oldest of the pull requests. If that fails it moves on to the next one, until one succeeds or there are no more pull requests to try to rebase.
 
 ## Inputs
 
@@ -54,11 +54,18 @@ name: Auto Rebase
 on:
   pull_request:
     types: [closed]
+  check_suite:
+    types: [completed]
+
+# Concurrency ensures that only one instance of the workflow runs for a given pull request or check suite.
+concurrency:
+  group: autobase-${{ github.event.pull_request.number || github.event.check_suite.id }}
+  cancel-in-progress: false
 
 jobs:
-  rebase:
+  autobase:
     runs-on: ubuntu-latest
-    if: github.event.pull_request.merged == true
+    if: (github.event.pull_request.merged == true) || (github.event.check_suite.conclusion == 'failure')
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -66,7 +73,7 @@ jobs:
         token: ${{ secrets.AUTOBASE_TOKEN }}
 
     - name: Auto Rebase
-      uses: eygraber/autobase@v1
+      uses: eygraber/autobase-action@v1
       with:
         github-token: ${{ secrets.AUTOBASE_TOKEN }}
 ```
