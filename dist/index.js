@@ -30168,7 +30168,6 @@ async function rebaseNextPullRequest(octokit, owner, repo, label, requiredApprov
         }
     }
 }
-run();
 
 
 /***/ }),
