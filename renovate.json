@@ -1,0 +1,21 @@
+{
+  "extends": [
+    "config:recommended",
+    ":semanticCommits"
+  ],
+  "platform": "github",
+  "timezone": "America/New_York",
+  "schedule": [
+    "after 3am",
+    "before 6am"
+  ],
+  "automerge": true,
+  "automergeType": "pr",
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "groupName": "all-deps",
+      "matchPackagePatterns": [".*"]
+    }
+  ]
+}
